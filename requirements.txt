@@ -2,3 +2,6 @@ google-generativeai
 python-dotenv
 faiss-cpu
 numpy
+langchain-text-splitters
+langchain-community
+google-adk
