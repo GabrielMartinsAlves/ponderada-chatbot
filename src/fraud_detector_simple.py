@@ -1,5 +1,6 @@
-import os
 import csv
+import os
+
 import dotenv
 import google.generativeai as genai
 
@@ -7,24 +8,31 @@ import google.generativeai as genai
 dotenv.load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
-    raise ValueError("A chave de API do Gemini não foi encontrada. Defina a variável de ambiente GEMINI_API_KEY.")
+    raise ValueError(
+        "A chave de API do Gemini não foi encontrada. Defina a variável de ambiente GEMINI_API_KEY."
+    )
 genai.configure(api_key=api_key)
+
 
 def ler_transacoes(caminho_arquivo):
     """Lê o arquivo CSV de transações e retorna uma lista de dicionários."""
     transacoes = []
-    with open(caminho_arquivo, mode='r', encoding='utf-8') as csvfile:
+    with open(caminho_arquivo, mode="r", encoding="utf-8") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             transacoes.append(row)
     return transacoes
 
+
 def ler_politica(caminho_arquivo):
     """Lê o arquivo de texto da política de compliance e retorna seu conteúdo."""
-    with open(caminho_arquivo, 'r', encoding='utf-8') as f:
+    with open(caminho_arquivo, "r", encoding="utf-8") as f:
         return f.read()
 
-def analisar_transacoes_simples(caminho_transacoes, caminho_politica, batch_size=50, max_batches=3):
+
+def analisar_transacoes_simples(
+    caminho_transacoes, caminho_politica, batch_size=50, max_batches=3
+):
     """
     Analisa transações bancárias em busca de violações DIRETAS da política de compliance.
 
@@ -35,12 +43,14 @@ def analisar_transacoes_simples(caminho_transacoes, caminho_politica, batch_size
     transacoes = ler_transacoes(caminho_transacoes)
     politica = ler_politica(caminho_politica)
 
-    model = genai.GenerativeModel('gemini-2.5-flash')
+    model = genai.GenerativeModel("gemini-2.5-flash")
 
     violacoes_encontradas = []
     total_batches = min((len(transacoes) + batch_size - 1) // batch_size, max_batches)
 
-    print(f"[Fraude Simples] Analisando {min(len(transacoes), batch_size * max_batches)} transações em {total_batches} lotes (limitado para teste)...")
+    print(
+        f"[Fraude Simples] Analisando {min(len(transacoes), batch_size * max_batches)} transações em {total_batches} lotes (limitado para teste)..."
+    )
 
     for batch_num in range(total_batches):
         start_idx = batch_num * batch_size
@@ -82,7 +92,7 @@ def analisar_transacoes_simples(caminho_transacoes, caminho_politica, batch_size
             if "Nenhuma violação direta detectada." not in resultado:
                 violacao = {
                     "batch": f"{start_idx + 1}-{end_idx}",
-                    "justificativa_ia": resultado
+                    "justificativa_ia": resultado,
                 }
                 violacoes_encontradas.append(violacao)
         except Exception as e:
@@ -91,8 +101,10 @@ def analisar_transacoes_simples(caminho_transacoes, caminho_politica, batch_size
     return violacoes_encontradas
 
 
-if __name__ == '__main__':
-    violacoes = analisar_transacoes_simples("documents/transacoes_bancarias.csv", "documents/politica_compliance.txt")
+if __name__ == "__main__":
+    violacoes = analisar_transacoes_simples(
+        "documents/transacoes_bancarias.csv", "documents/politica_compliance.txt"
+    )
 
     print("\n--- Relatório de Fraudes Simples (Violações Diretas) ---")
     if not violacoes:
@@ -101,5 +113,5 @@ if __name__ == '__main__':
         print(f"Lotes com violações: {len(violacoes)}\n")
         for v in violacoes:
             print(f"--- Lote {v['batch']} ---")
-            print(v['justificativa_ia'])
+            print(v["justificativa_ia"])
             print()

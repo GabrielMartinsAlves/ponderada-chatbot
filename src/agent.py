@@ -1,7 +1,14 @@
 import os
-import google.generativeai as genai
+
 from google.adk import Agent
-from src.tools import compliance_tool, conspiracy_tool, simple_fraud_tool, complex_fraud_tool
+
+from src.tools import (
+    complex_fraud_tool,
+    compliance_tool,
+    conspiracy_tool,
+    simple_fraud_tool,
+)
+
 
 def create_auditor_agent():
     # Configura a API Key (já deve estar carregada pelo dotenv no main)
@@ -31,7 +38,7 @@ def create_auditor_agent():
         name="AuditorAgent",
         model="gemini-2.5-flash",
         tools=[compliance_tool, conspiracy_tool, simple_fraud_tool, complex_fraud_tool],
-        instruction=instructions
+        instruction=instructions,
     )
 
     return agent

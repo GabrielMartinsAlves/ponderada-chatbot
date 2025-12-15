@@ -1,6 +1,6 @@
-import os
 import csv
-import re
+import os
+
 import dotenv
 import google.generativeai as genai
 
@@ -8,46 +8,50 @@ import google.generativeai as genai
 dotenv.load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
-    raise ValueError("A chave de API do Gemini não foi encontrada. Defina a variável de ambiente GEMINI_API_KEY.")
+    raise ValueError(
+        "A chave de API do Gemini não foi encontrada. Defina a variável de ambiente GEMINI_API_KEY."
+    )
 genai.configure(api_key=api_key)
 
 
 def ler_transacoes(caminho_arquivo):
     """Lê o arquivo CSV de transações e retorna uma lista de dicionários."""
     transacoes = []
-    with open(caminho_arquivo, mode='r', encoding='utf-8') as csvfile:
+    with open(caminho_arquivo, mode="r", encoding="utf-8") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             transacoes.append(row)
     return transacoes
 
+
 def ler_politica(caminho_arquivo):
     """Lê o arquivo de texto da política de compliance e retorna seu conteúdo."""
-    with open(caminho_arquivo, 'r', encoding='utf-8') as f:
+    with open(caminho_arquivo, "r", encoding="utf-8") as f:
         return f.read()
+
 
 def parse_emails(file_path):
     """Analisa o arquivo de texto de e-mails e o divide em uma lista de dicionários."""
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
-    email_blocks = content.strip().split('---')
+    email_blocks = content.strip().split("---")
     parsed_emails = []
     for block in email_blocks:
         if not block.strip():
             continue
         email_data = {}
-        lines = block.strip().split('\n')
+        lines = block.strip().split("\n")
         for line in lines:
-            if line.startswith('De:'):
-                email_data['de'] = line.split(':', 1)[1].strip()
-            elif line.startswith('Para:'):
-                email_data['para'] = line.split(':', 1)[1].strip()
-            elif line.startswith('Assunto:'):
-                email_data['assunto'] = line.split(':', 1)[1].strip()
-            elif 'corpo' not in email_data:
-                email_data['corpo'] = line
+            if line.startswith("De:"):
+                email_data["de"] = line.split(":", 1)[1].strip()
+            elif line.startswith("Para:"):
+                email_data["para"] = line.split(":", 1)[1].strip()
+            elif line.startswith("Assunto:"):
+                email_data["assunto"] = line.split(":", 1)[1].strip()
+            elif "corpo" not in email_data:
+                email_data["corpo"] = line
             else:
-                email_data['corpo'] += '\n' + line
+                email_data["corpo"] += "\n" + line
         parsed_emails.append(email_data)
     return parsed_emails
 
@@ -68,9 +72,13 @@ def analisar_transacoes_complexas(caminho_transacoes, caminho_politica, caminho_
     politica = ler_politica(caminho_politica)
     todos_emails = parse_emails(caminho_emails)
 
-    model = genai.GenerativeModel('gemini-2.5-flash', generation_config={"temperature": 0.1})
+    model = genai.GenerativeModel(
+        "gemini-2.5-flash", generation_config={"temperature": 0.1}
+    )
 
-    print("[Fraude Complexa] Etapa 1: Analisando e-mails em busca de padrões suspeitos...")
+    print(
+        "[Fraude Complexa] Etapa 1: Analisando e-mails em busca de padrões suspeitos..."
+    )
 
     # ETAPA 1: Analisar e-mails para encontrar comportamentos suspeitos
     # Limitado para testes
@@ -78,11 +86,11 @@ def analisar_transacoes_complexas(caminho_transacoes, caminho_politica, caminho_
     emails_formatados = ""
     for i, email in enumerate(todos_emails[:max_emails]):
         emails_formatados += f"""
-E-mail #{i+1}:
-De: {email.get('de', 'N/A')}
-Para: {email.get('para', 'N/A')}
-Assunto: {email.get('assunto', 'N/A')}
-Corpo: {email.get('corpo', '')[:300]}
+E-mail #{i + 1}:
+De: {email.get("de", "N/A")}
+Para: {email.get("para", "N/A")}
+Assunto: {email.get("assunto", "N/A")}
+Corpo: {email.get("corpo", "")[:300]}
 ---
 """
 
@@ -129,34 +137,42 @@ Corpo: {email.get('corpo', '')[:300]}
     # Extrai nomes dos funcionários mencionados na análise
     funcionarios_suspeitos = set()
     for transacao in transacoes:
-        nome = transacao['funcionario'].lower()
+        nome = transacao["funcionario"].lower()
         if nome in analise_emails.lower():
-            funcionarios_suspeitos.add(transacao['funcionario'])
+            funcionarios_suspeitos.add(transacao["funcionario"])
 
     if not funcionarios_suspeitos:
         print("[Fraude Complexa] Não foi possível vincular suspeitas a transações.")
-        return [{
-            "tipo": "Comunicação Suspeita (sem vínculo a transações)",
-            "analise_emails": analise_emails,
-            "transacoes_vinculadas": []
-        }]
+        return [
+            {
+                "tipo": "Comunicação Suspeita (sem vínculo a transações)",
+                "analise_emails": analise_emails,
+                "transacoes_vinculadas": [],
+            }
+        ]
 
     # Filtra transações dos funcionários suspeitos
-    transacoes_suspeitas = [t for t in transacoes if t['funcionario'] in funcionarios_suspeitos]
+    transacoes_suspeitas = [
+        t for t in transacoes if t["funcionario"] in funcionarios_suspeitos
+    ]
 
     if not transacoes_suspeitas:
-        return [{
-            "tipo": "Comunicação Suspeita (sem transações encontradas)",
-            "analise_emails": analise_emails,
-            "transacoes_vinculadas": []
-        }]
+        return [
+            {
+                "tipo": "Comunicação Suspeita (sem transações encontradas)",
+                "analise_emails": analise_emails,
+                "transacoes_vinculadas": [],
+            }
+        ]
 
     # Formata transações para análise final (limitado para testes)
     transacoes_formatadas = ""
     for t in transacoes_suspeitas[:50]:
         transacoes_formatadas += f"ID: {t['id_transacao']} | {t['funcionario']} | ${t['valor']} | {t['descricao']}\n"
 
-    print(f"[Fraude Complexa] Etapa 3: Analisando {min(len(transacoes_suspeitas), 50)} transações de funcionários suspeitos...")
+    print(
+        f"[Fraude Complexa] Etapa 3: Analisando {min(len(transacoes_suspeitas), 50)} transações de funcionários suspeitos..."
+    )
 
     # ETAPA 3: Análise final cruzando e-mails + transações
     prompt_final = f"""Você é um auditor forense da Dunder Mifflin.
@@ -187,19 +203,21 @@ Corpo: {email.get('corpo', '')[:300]}
     except Exception as e:
         return [{"erro": f"Erro na análise final: {e}"}]
 
-    return [{
-        "tipo": "Fraude Contextual Identificada",
-        "analise_emails": analise_emails,
-        "funcionarios_suspeitos": list(funcionarios_suspeitos),
-        "relatorio_final": resultado_final
-    }]
+    return [
+        {
+            "tipo": "Fraude Contextual Identificada",
+            "analise_emails": analise_emails,
+            "funcionarios_suspeitos": list(funcionarios_suspeitos),
+            "relatorio_final": resultado_final,
+        }
+    ]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     suspeitas = analisar_transacoes_complexas(
         "documents/transacoes_bancarias.csv",
         "documents/politica_compliance.txt",
-        "documents/emails_internos.txt"
+        "documents/emails_internos.txt",
     )
 
     print("\n--- Relatório de Fraudes Complexas (Contextuais) ---")
@@ -212,5 +230,7 @@ if __name__ == '__main__':
             else:
                 print(f"\nTipo: {s.get('tipo', 'N/A')}")
                 print(f"\nAnálise dos E-mails:\n{s.get('analise_emails', 'N/A')}")
-                print(f"\nFuncionários Suspeitos: {s.get('funcionarios_suspeitos', [])}")
+                print(
+                    f"\nFuncionários Suspeitos: {s.get('funcionarios_suspeitos', [])}"
+                )
                 print(f"\nRelatório Final:\n{s.get('relatorio_final', 'N/A')}")
