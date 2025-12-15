@@ -18,7 +18,7 @@ async def main():
         return
 
     try:
-        # Cria o agente
+        # Cria o agente orquestrador (auditor)
         agent = create_auditor_agent()
 
         # Cria o serviço de sessão
@@ -32,42 +32,24 @@ async def main():
 
         print("Agente Auditor pronto! (Digite 'sair' para encerrar)")
 
-        # Loop de interação simples usando o runner
-        # O runner do ADK pode ter métodos diferentes dependendo da versão,
-        # mas geralmente oferece uma forma de executar turnos.
-        # Aqui faremos um loop manual invocando o runner.
-
         while True:
             user_input = input("\nVocê: ")
             if user_input.lower() in ['sair', 'exit', 'quit']:
                 break
 
             # Executa o agente com a entrada do usuário
-            # O método run() ou run_agent() geralmente retorna a resposta.
-            # Vamos assumir runner.run(input=...) ou agent.run(...)
-            # Verificando a documentação implícita nos objetos disponíveis:
-            # Se Runner for complexo, podemos usar agent diretamente se ele suportar.
-            # Mas o padrão ADK é usar Runner.
-
-            # Executa o agente com a entrada do usuário
             message_content = types.Content(role="user", parts=[types.Part(text=user_input)])
             final_response_text = ""
             async for event in runner.run_async(user_id="user", session_id=session.id, new_message=message_content):
-                # O ADK emite vários tipos de eventos. Queremos apenas o texto final.
-                # Eventos com content.parts contendo function_call são chamadas de ferramenta.
-                # Eventos com content.parts contendo function_response são respostas de ferramenta.
-                # O evento final com texto do modelo tem role='model' e parts com text.
+
                 if hasattr(event, 'content') and event.content:
                     content = event.content
-                    # Verifica se é uma resposta do modelo com texto (não function_call)
                     if hasattr(content, 'role') and content.role == 'model':
                         if hasattr(content, 'parts'):
                             for part in content.parts:
-                                # Verifica se a parte tem texto e NÃO é uma function_call
                                 if hasattr(part, 'text') and part.text:
                                     final_response_text = part.text
 
-            # Imprime apenas a resposta final de texto
             if final_response_text:
                 print(f"\nAuditor: {final_response_text}")
 

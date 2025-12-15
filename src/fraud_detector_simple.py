@@ -24,13 +24,13 @@ def ler_politica(caminho_arquivo):
     with open(caminho_arquivo, 'r', encoding='utf-8') as f:
         return f.read()
 
-def analisar_transacoes_simples(caminho_transacoes, caminho_politica, batch_size=100, max_batches=3):
+def analisar_transacoes_simples(caminho_transacoes, caminho_politica, batch_size=50, max_batches=3):
     """
     Analisa transações bancárias em busca de violações DIRETAS da política de compliance.
 
     Args:
-        batch_size: Transações por lote (padrão: 100)
-        max_batches: Número máximo de lotes a processar (padrão: 3, para testes)
+        batch_size: Transações por lote (padrão: 50)
+        max_batches: Número máximo de lotes a processar
     """
     transacoes = ler_transacoes(caminho_transacoes)
     politica = ler_politica(caminho_politica)
@@ -56,23 +56,24 @@ def analisar_transacoes_simples(caminho_transacoes, caminho_politica, batch_size
 
         prompt = f"""Você é um auditor de compliance da Dunder Mifflin.
 
-TAREFA: Identificar transações que, POR SI SÓ, violam a política de compliance.
-(Não considere conspirações ou contexto de e-mails - apenas se a transação viola regras diretamente)
+                    TAREFA: Identificar transações que, POR SI SÓ, violam a política de compliance.
+                    (Não considere conspirações ou contexto de e-mails - apenas se a transação viola regras diretamente)
 
-POLÍTICA DE COMPLIANCE:
-{politica}
+                    POLÍTICA DE COMPLIANCE:
+                    {politica}
 
-TRANSAÇÕES PARA ANÁLISE:
-{transacoes_formatadas}
+                    TRANSAÇÕES PARA ANÁLISE:
+                    {transacoes_formatadas}
 
-INSTRUÇÕES:
-1. Verifique cada transação contra as regras da política
-2. Uma violação DIRETA é quando a transação, por si só, quebra uma regra (ex: valor acima do limite, categoria proibida)
-3. Liste APENAS violações diretas no formato:
-   ID: [id] | Funcionário: [nome] | Violação: [descrição breve da regra quebrada]
-4. Se nenhuma transação violar diretamente a política, responda APENAS: "Nenhuma violação direta detectada."
+                    INSTRUÇÕES:
+                    1. Verifique cada transação contra as regras da política
+                    2. Uma violação DIRETA é quando a transação, por si só, quebra uma regra (ex: valor acima do limite, categoria proibida)
+                    3. Liste APENAS violações diretas no formato:
+                    ID: [id] | Funcionário: [nome] | Violação: [descrição breve da regra quebrada]
+                    4. Se nenhuma transação violar diretamente a política, responda APENAS: "Nenhuma violação direta detectada."
 
-RELATÓRIO:"""
+                    RELATÓRIO:
+                """
 
         try:
             response = model.generate_content(prompt)

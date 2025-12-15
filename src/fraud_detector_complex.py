@@ -88,29 +88,30 @@ Corpo: {email.get('corpo', '')[:300]}
 
     prompt_emails = f"""Você é um investigador forense da Dunder Mifflin.
 
-TAREFA: Analisar os e-mails abaixo e identificar COMUNICAÇÕES SUSPEITAS que possam indicar:
-- Funcionários combinando fraudes ou desvios de verba
-- Conluio para burlar regras de compliance
-- Discussões sobre esconder gastos ou manipular relatórios
-- Qualquer conspiração financeira
+        TAREFA: Analisar os e-mails abaixo e identificar COMUNICAÇÕES SUSPEITAS que possam indicar:
+        - Funcionários combinando fraudes ou desvios de verba
+        - Conluio para burlar regras de compliance
+        - Discussões sobre esconder gastos ou manipular relatórios
+        - Qualquer conspiração financeira
 
-E-MAILS:
-{emails_formatados}
+        E-MAILS:
+        {emails_formatados}
 
-POLÍTICA DE COMPLIANCE (para referência):
-{politica}
+        POLÍTICA DE COMPLIANCE (para referência):
+        {politica}
 
-INSTRUÇÕES:
-1. Identifique e-mails que indicam comportamento fraudulento ou suspeito
-2. Liste os funcionários envolvidos e o tipo de fraude suspeita
-3. Se não houver nada suspeito, responda: "Nenhuma comunicação suspeita identificada."
+        INSTRUÇÕES:
+        1. Identifique e-mails que indicam comportamento fraudulento ou suspeito
+        2. Liste os funcionários envolvidos e o tipo de fraude suspeita
+        3. Se não houver nada suspeito, responda: "Nenhuma comunicação suspeita identificada."
 
-FORMATO DE RESPOSTA (se houver suspeitas):
-- Funcionários: [nomes]
-- Tipo de fraude suspeita: [descrição]
-- Evidência: [trecho do e-mail]
+        FORMATO DE RESPOSTA (se houver suspeitas):
+        - Funcionários: [nomes]
+        - Tipo de fraude suspeita: [descrição]
+        - Evidência: [trecho do e-mail]
 
-ANÁLISE:"""
+        ANÁLISE:
+    """
 
     try:
         response = model.generate_content(prompt_emails)
@@ -160,24 +161,25 @@ ANÁLISE:"""
     # ETAPA 3: Análise final cruzando e-mails + transações
     prompt_final = f"""Você é um auditor forense da Dunder Mifflin.
 
-CONTEXTO: Foram identificadas comunicações suspeitas nos e-mails da empresa.
+        CONTEXTO: Foram identificadas comunicações suspeitas nos e-mails da empresa.
 
-ANÁLISE DOS E-MAILS:
-{analise_emails}
+        ANÁLISE DOS E-MAILS:
+        {analise_emails}
 
-TRANSAÇÕES DOS FUNCIONÁRIOS MENCIONADOS:
-{transacoes_formatadas}
+        TRANSAÇÕES DOS FUNCIONÁRIOS MENCIONADOS:
+        {transacoes_formatadas}
 
-POLÍTICA DE COMPLIANCE:
-{politica}
+        POLÍTICA DE COMPLIANCE:
+        {politica}
 
-TAREFA: Cruze as informações e identifique transações que, COM BASE NAS COMUNICAÇÕES,
-representam fraudes ou desvios de verba.
+        TAREFA: Cruze as informações e identifique transações que, COM BASE NAS COMUNICAÇÕES,
+        representam fraudes ou desvios de verba.
 
-IMPORTANTE: Estas são fraudes que SÓ PODEM SER DESCOBERTAS com o contexto dos e-mails.
-(Transações que parecem normais isoladamente, mas são fraudulentas considerando as comunicações)
+        IMPORTANTE: Estas são fraudes que SÓ PODEM SER DESCOBERTAS com o contexto dos e-mails.
+        (Transações que parecem normais isoladamente, mas são fraudulentas considerando as comunicações)
 
-RELATÓRIO FINAL:"""
+        RELATÓRIO FINAL:
+    """
 
     try:
         response = model.generate_content(prompt_final)

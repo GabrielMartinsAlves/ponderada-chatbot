@@ -94,16 +94,16 @@ def perguntar_ao_chatbot(pergunta):
 
     # 4. Construir o prompt e chamar o modelo generativo
     prompt_template = f"""
-    Você é um assistente de auditoria da Dunder Mifflin. Sua tarefa é responder a perguntas sobre a política de compliance da empresa.
-    Use apenas o contexto fornecido abaixo para basear suas respostas. Seja claro e direto.
+        Você é um assistente de auditoria da Dunder Mifflin. Sua tarefa é responder a perguntas sobre a política de compliance da empresa.
+        Use apenas o contexto fornecido abaixo para basear suas respostas. Seja claro e direto.
 
-    Contexto Relevante:
-    {contexto_relevante}
+        Contexto Relevante:
+        {contexto_relevante}
 
-    Pergunta:
-    {pergunta}
+        Pergunta:
+        {pergunta}
 
-    Resposta:
+        Resposta:
     """
 
     model = genai.GenerativeModel('gemini-2.5-flash')

@@ -11,11 +11,11 @@ if os.path.exists(caminho_politica):
 
 def compliance_tool(pergunta: str) -> str:
     """
-    Responde a perguntas sobre a política de compliance da empresa.
-    Use esta ferramenta quando o usuário tiver dúvidas sobre regras, diretrizes ou políticas internas.
+        Responde a perguntas sobre a política de compliance da empresa.
+        Use esta ferramenta quando o usuário tiver dúvidas sobre regras, diretrizes ou políticas internas.
 
-    Args:
-        pergunta: A pergunta do usuário sobre compliance.
+        Args:
+            pergunta: A pergunta do usuário sobre compliance.
     """
     try:
         return perguntar_ao_chatbot(pergunta)
@@ -24,8 +24,8 @@ def compliance_tool(pergunta: str) -> str:
 
 def conspiracy_tool() -> str:
     """
-    Analisa e-mails internos em busca de evidências de conspiração contra Toby Flenderson.
-    Use esta ferramenta quando o usuário pedir para investigar conspirações ou tramas.
+        Analisa e-mails internos em busca de evidências de conspiração contra Toby Flenderson.
+        Use esta ferramenta quando o usuário pedir para investigar conspirações ou tramas.
     """
     try:
         caminho_emails = "documents/emails_internos.txt"
@@ -35,9 +35,9 @@ def conspiracy_tool() -> str:
 
 def simple_fraud_tool() -> str:
     """
-    Analisa transações bancárias em busca de violações DIRETAS da política de compliance.
-    Use esta ferramenta para verificar transações que, POR SI SÓ, quebram regras
-    (ex: valores acima do limite, categorias proibidas, fornecedores não autorizados).
+        Analisa transações bancárias em busca de violações DIRETAS da política de compliance.
+        Use esta ferramenta para verificar transações que, POR SI SÓ, quebram regras
+        (ex: valores acima do limite, categorias proibidas, fornecedores não autorizados).
     """
     try:
         caminho_transacoes = "documents/transacoes_bancarias.csv"
@@ -56,9 +56,9 @@ def simple_fraud_tool() -> str:
 
 def complex_fraud_tool() -> str:
     """
-    Realiza uma análise forense que CRUZA e-mails com transações para descobrir fraudes contextuais.
-    Use esta ferramenta para identificar funcionários combinando fraudes, desvios de verba,
-    ou conspirações que só podem ser descobertas analisando as comunicações internas.
+        Realiza uma análise forense que CRUZA e-mails com transações para descobrir fraudes contextuais.
+        Use esta ferramenta para identificar funcionários combinando fraudes, desvios de verba,
+        ou conspirações que só podem ser descobertas analisando as comunicações internas.
     """
     try:
         caminho_transacoes = "documents/transacoes_bancarias.csv"
