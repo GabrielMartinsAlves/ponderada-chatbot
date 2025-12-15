@@ -24,77 +24,81 @@ def ler_politica(caminho_arquivo):
     with open(caminho_arquivo, 'r', encoding='utf-8') as f:
         return f.read()
 
-def analisar_transacoes_simples(caminho_transacoes, caminho_politica):
+def analisar_transacoes_simples(caminho_transacoes, caminho_politica, batch_size=100, max_batches=3):
     """
-    Analisa transações bancárias em busca de violações diretas da política de compliance.
+    Analisa transações bancárias em busca de violações DIRETAS da política de compliance.
+
+    Args:
+        batch_size: Transações por lote (padrão: 100)
+        max_batches: Número máximo de lotes a processar (padrão: 3, para testes)
     """
     transacoes = ler_transacoes(caminho_transacoes)
     politica = ler_politica(caminho_politica)
-    
+
     model = genai.GenerativeModel('gemini-2.5-flash')
-    
+
     violacoes_encontradas = []
+    total_batches = min((len(transacoes) + batch_size - 1) // batch_size, max_batches)
 
-    print("Iniciando análise de transações simples com o Google AI SDK...")
-    
-    for i, transacao in enumerate(transacoes):
-        print(f"Analisando transação {i+1}/{len(transacoes)}...")
-        
-        detalhes_transacao = (
-            f"ID: {transacao['id_transacao']}, "
-            f"Data: {transacao['data']}, "
-            f"Funcionário: {transacao['funcionario']}, "
-            f"Valor: ${transacao['valor']}, "
-            f"Descrição: {transacao['descricao']}"
-        )
+    print(f"[Fraude Simples] Analisando {min(len(transacoes), batch_size * max_batches)} transações em {total_batches} lotes (limitado para teste)...")
 
-        prompt = f"""
-        Você é um auditor de compliance da Dunder Mifflin. Sua tarefa é analisar uma transação e verificar se ela viola alguma regra da política de compliance da empresa.
+    for batch_num in range(total_batches):
+        start_idx = batch_num * batch_size
+        end_idx = min(start_idx + batch_size, len(transacoes))
+        batch = transacoes[start_idx:end_idx]
 
-        **Política de Compliance:**
-        {politica}
+        print(f"[Fraude Simples] Lote {batch_num + 1}/{total_batches}...")
 
-        **Transação para Análise:**
-        {detalhes_transacao}
+        # Formata as transações do lote
+        transacoes_formatadas = ""
+        for i, transacao in enumerate(batch):
+            transacoes_formatadas += f"#{start_idx + i + 1} | ID: {transacao['id_transacao']} | {transacao['data']} | {transacao['funcionario']} | ${transacao['valor']} | {transacao['descricao']}\n"
 
-        **Instruções:**
-        1. Compare a transação com cada regra da política.
-        2. Se a transação violar claramente uma ou mais regras, descreva a violação, qual regra foi quebrada e por quê.
-        3. Se não houver violação, responda **exclusivamente** com a frase "Nenhuma violação detectada.".
+        prompt = f"""Você é um auditor de compliance da Dunder Mifflin.
 
-        **Relatório de Auditoria:**
-        """
+TAREFA: Identificar transações que, POR SI SÓ, violam a política de compliance.
+(Não considere conspirações ou contexto de e-mails - apenas se a transação viola regras diretamente)
+
+POLÍTICA DE COMPLIANCE:
+{politica}
+
+TRANSAÇÕES PARA ANÁLISE:
+{transacoes_formatadas}
+
+INSTRUÇÕES:
+1. Verifique cada transação contra as regras da política
+2. Uma violação DIRETA é quando a transação, por si só, quebra uma regra (ex: valor acima do limite, categoria proibida)
+3. Liste APENAS violações diretas no formato:
+   ID: [id] | Funcionário: [nome] | Violação: [descrição breve da regra quebrada]
+4. Se nenhuma transação violar diretamente a política, responda APENAS: "Nenhuma violação direta detectada."
+
+RELATÓRIO:"""
 
         try:
             response = model.generate_content(prompt)
             resultado = response.text.strip()
-            
-            if "Nenhuma violação detectada." not in resultado:
+
+            if "Nenhuma violação direta detectada." not in resultado:
                 violacao = {
-                    "transacao": transacao,
+                    "batch": f"{start_idx + 1}-{end_idx}",
                     "justificativa_ia": resultado
                 }
                 violacoes_encontradas.append(violacao)
         except Exception as e:
-            print(f"Erro ao analisar a transação {transacao['id_transacao']}: {e}")
+            print(f"[Fraude Simples] Erro no lote {batch_num + 1}: {e}")
 
     return violacoes_encontradas
 
-# Exemplo de uso
+
 if __name__ == '__main__':
-    violacoes = analisar_transacoes_simples()
-    
-    print("\n\n--- Relatório de Detecção de Fraudes Simples ---")
+    violacoes = analisar_transacoes_simples("documents/transacoes_bancarias.csv", "documents/politica_compliance.txt")
+
+    print("\n--- Relatório de Fraudes Simples (Violações Diretas) ---")
     if not violacoes:
-        print("Nenhuma violação de compliance foi detectada nas transações.")
+        print("Nenhuma violação direta de compliance foi detectada.")
     else:
-        print(f"Total de violações detectadas: {len(violacoes)}\n")
-        for violacao in violacoes:
-            transacao = violacao['transacao']
-            print(f"ID da Transação: {transacao['id_transacao']}")
-            print(f"Funcionário: {transacao['funcionario']}")
-            print(f"Valor: ${transacao['valor']}")
-            print(f"Descrição: {transacao['descricao']}")
-            print(f"Análise da IA: {violacao['justificativa_ia']}")
-            print("-" * 30)
-    print("-------------------------------------------------")
+        print(f"Lotes com violações: {len(violacoes)}\n")
+        for v in violacoes:
+            print(f"--- Lote {v['batch']} ---")
+            print(v['justificativa_ia'])
+            print()

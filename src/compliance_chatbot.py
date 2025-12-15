@@ -4,7 +4,7 @@ import numpy as np
 import faiss
 import google.generativeai as genai
 from langchain_community.document_loaders import TextLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # Carrega as variáveis de ambiente
 dotenv.load_dotenv()
@@ -22,7 +22,7 @@ text_chunks = None
 def criar_chatbot_compliance(caminho_politica):
     """
     Cria e armazena em cache um vector store para o chatbot de compliance usando o Google AI SDK.
-    
+
     Esta função carrega a política, a divide, gera os embeddings com o modelo do Google
     e os armazena em um índice FAISS.
     """
@@ -40,12 +40,12 @@ def criar_chatbot_compliance(caminho_politica):
     # Divide o documento em chunks
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     text_chunks = splitter.split_documents(documentos)
-    
+
     # Extrai o conteúdo de texto dos documentos
     text_contents = [chunk.page_content for chunk in text_chunks]
 
     print(f"Gerando embeddings para {len(text_contents)} chunks de texto...")
-    
+
     # Gera os embeddings usando o SDK do Google
     # O modelo 'text-embedding-004' é o recomendado atualmente.
     result = genai.embed_content(
@@ -53,16 +53,16 @@ def criar_chatbot_compliance(caminho_politica):
         content=text_contents,
         task_type="RETRIEVAL_DOCUMENT"
     )
-    
+
     embeddings = result['embedding']
-    
+
     # Cria o índice FAISS
     dimension = len(embeddings[0])
     index = faiss.IndexFlatL2(dimension)
-    
+
     # Adiciona os vetores ao índice
     index.add(np.array(embeddings))
-    
+
     # Armazena o índice e os chunks em cache
     vector_store = index
     print("Vector Store criado com sucesso.")
@@ -108,7 +108,7 @@ def perguntar_ao_chatbot(pergunta):
 
     model = genai.GenerativeModel('gemini-2.5-flash')
     response = model.generate_content(prompt_template)
-    
+
     return response.text
 
 # Exemplo de uso quando o script é executado diretamente
@@ -121,6 +121,6 @@ if __name__ == '__main__':
         pergunta_usuario = input("\nSua pergunta: ")
         if pergunta_usuario.lower() == 'sair':
             break
-        
+
         resposta = perguntar_ao_chatbot(pergunta_usuario)
         print("\nResposta do Chatbot:", resposta)
